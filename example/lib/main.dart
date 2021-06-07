@@ -10,6 +10,10 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return OTS(
+      CupertinoApp(
+        title: 'OTS Test',
+        home: Home(),
+      ),
       showNetworkUpdates: true,
       persistNoInternetNotification: false,
 
@@ -21,10 +25,6 @@ class MyApp extends StatelessWidget {
 //      title: 'OTS Test',
 //        home: Home(),
 //      ),
-      child: CupertinoApp(
-        title: 'OTS Test',
-        home: Home(),
-      ),
     );
   }
 }
@@ -50,7 +50,7 @@ class _HomeState extends State<Home> {
                 child: Text('Show Notification', style: textStyle),
                 onPressed: () {
                   showNotification(
-                    message: 'Hello, this is notification',
+                    'Hello, this is notification',
                     title: 'Test',
                     backgroundColor: Colors.green,
                     autoDismissible: true,

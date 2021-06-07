@@ -3,14 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:ots/utils/styles.dart';
 
 class NetworkWidget extends StatefulWidget {
-  final VoidCallback disposeOverlay;
+  final VoidCallback? disposeOverlay;
   final NetworkState state;
   final bool persistNotification;
 
   const NetworkWidget(
-      {Key key,
+      {Key? key,
       this.disposeOverlay,
-      this.state,
+      this.state = NetworkState.Disconnected,
       this.persistNotification = false})
       : super(key: key);
 
@@ -20,8 +20,8 @@ class NetworkWidget extends StatefulWidget {
 
 class _NetworkWidgetState extends State<NetworkWidget>
     with SingleTickerProviderStateMixin {
-  Animation _animation;
-  AnimationController _animationController;
+  late Animation _animation;
+  late AnimationController _animationController;
 
   @override
   void initState() {
@@ -58,7 +58,7 @@ class _NetworkWidgetState extends State<NetworkWidget>
   }
 
   _callDispose() {
-    if (widget.disposeOverlay != null) widget.disposeOverlay();
+    widget.disposeOverlay?.call();
   }
 
   @override
