@@ -9,7 +9,7 @@ void main() {
     (tester) async {
       await tester.pumpWidget(
         OTS(
-          child: MaterialApp(
+          MaterialApp(
             home: Scaffold(),
           ),
         ),
@@ -29,12 +29,12 @@ void main() {
     (tester) async {
       await tester.pumpWidget(
         OTS(
-          child: MaterialApp(
+          MaterialApp(
             home: Scaffold(),
           ),
         ),
       );
-      await showNotification(message: 'foo');
+      await showNotification('foo');
       await hideNotification();
       try {
         await hideNotification();
