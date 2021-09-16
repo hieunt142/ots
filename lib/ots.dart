@@ -24,10 +24,10 @@ final _tKey = GlobalKey(debugLabel: 'overlay_parent');
 final _modalBarrierDefaultColor = Colors.grey.withOpacity(0.15);
 
 /// Updates with the latest [OverlayEntry] child
-OverlayEntry _notificationEntry;
-OverlayEntry _loaderEntry;
-OverlayEntry _networkStatusEntry;
-OverlayEntry _toastEntry;
+OverlayEntry? _notificationEntry;
+OverlayEntry? _loaderEntry;
+OverlayEntry? _networkStatusEntry;
+OverlayEntry? _toastEntry;
 
 /// is dark theme
 bool isDarkTheme = false;
@@ -41,18 +41,17 @@ bool _persistNoInternetToast = false;
 
 bool _showDebugLogs = false;
 
-Widget _loadingIndicator;
+Widget? _loadingIndicator;
 
 class OTS extends StatelessWidget {
   final Widget child;
-  final Widget loader;
+  final Widget? loader;
   final bool showNetworkUpdates;
   final bool persistNoInternetNotification;
   final bool darkTheme;
 
-  const OTS(
-      {Key key,
-      this.child,
+  const OTS(this.child,
+      {Key? key,
       this.loader,
       this.showNetworkUpdates = false,
       this.persistNoInternetNotification = false,
@@ -74,16 +73,17 @@ class OTS extends StatelessWidget {
   }
 }
 
-OverlayState get _overlayState {
+OverlayState? get _overlayState {
   final context = _tKey.currentContext;
   if (context == null) return null;
 
-  NavigatorState navigator;
+  NavigatorState? navigator;
+
   void visitor(Element element) {
     if (navigator != null) return;
 
     if (element.widget is Navigator) {
-      navigator = (element as StatefulElement).state;
+      navigator = ((element as StatefulElement).state as NavigatorState?);
     } else {
       element.visitChildElements(visitor);
     }
@@ -93,7 +93,7 @@ OverlayState get _overlayState {
 
   assert(navigator != null,
       '''Cannot find OTS above the widget tree, unable to show overlay''');
-  return navigator.overlay;
+  return navigator?.overlay;
 }
 
 /// handling Internet Connectivity changes
@@ -142,7 +142,7 @@ Future<void> _showNetworkStateWidget(NetworkState state) async {
       await _hideNetworkStateWidget();
     }
 
-    await _showOverlay(child: child, type: _OverlayType.NetworkStatus);
+    await _showOverlay(child, _OverlayType.NetworkStatus);
   } catch (err) {
     _printError(
         '''Caught an exception while trying to show NetworkStatusWidget''');
@@ -162,7 +162,7 @@ Future<void> _hideNetworkStateWidget() async {
 }
 
 /// To handle a loader for the application
-Future<void> showLoader({bool isModal = false, Color modalColor}) async {
+Future<void> showLoader({bool isModal = false, Color? modalColor}) async {
   try {
     _printLog('''Showing loader as Overlay''');
     final _child = Center(
@@ -172,7 +172,7 @@ Future<void> showLoader({bool isModal = false, Color modalColor}) async {
               : CupertinoActivityIndicator()),
     );
     await _showOverlay(
-      child: isModal
+      isModal
           ? Stack(
               children: <Widget>[
                 ModalBarrier(
@@ -182,7 +182,7 @@ Future<void> showLoader({bool isModal = false, Color modalColor}) async {
               ],
             )
           : _child,
-      type: _OverlayType.Loader,
+      _OverlayType.Loader,
     );
   } catch (err) {
     debugPrint(
@@ -202,29 +202,25 @@ Future<void> hideLoader() async {
 }
 
 /// This method can be used by the client to show a Notification as an overlay
-Future<void> showNotification(
-    {String title,
-    @required String message,
-    TextStyle messageStyle,
-    TextStyle titleStyle,
-    Color backgroundColor,
-    int notificationDuration,
-    int animDuration,
-    bool dismissOnTap,
-    VoidCallback onTap,
-    bool autoDismissible}) async {
-  /// Throws an error if message is null
-  assert(message != null, '''Notification message cannot be null''');
-
+Future<void> showNotification(String message,
+    {String? title,
+    TextStyle? messageStyle,
+    TextStyle? titleStyle,
+    Color? backgroundColor,
+    int notificationDuration = 2000,
+    int animDuration = 400,
+    bool dismissOnTap = true,
+    VoidCallback? onTap,
+    bool autoDismissible = true}) async {
   try {
     final child = Positioned(
       left: 8.0,
       right: 8.0,
       child: NotificationWidget(
+        message,
         disposeOverlay: hideNotification,
-        backgroundColor: backgroundColor,
-        message: message,
-        title: title,
+        backgroundColor: backgroundColor ?? Colors.white,
+        title: title ?? "",
         messageStyle: messageStyle,
         titleStyle: titleStyle,
         autoDismissible: autoDismissible,
@@ -237,7 +233,7 @@ Future<void> showNotification(
 
     _printLog('''Showing Notification overlay''');
 
-    await _showOverlay(child: child, type: _OverlayType.Notification);
+    await _showOverlay(child, _OverlayType.Notification);
   } catch (err) {
     _printError('''Caught an exception while trying to show Notification''');
     throw err;
@@ -288,7 +284,7 @@ Future<void> bakeToast(String message,
 
     _printLog('''Showing Toast overlay''');
 
-    await _showOverlay(child: child, type: _OverlayType.Toast);
+    await _showOverlay(child, _OverlayType.Toast);
   } catch (err) {
     _printError('''Caught an exception while trying to show Toast''');
     throw err;
@@ -309,7 +305,7 @@ Future<void> _hideToast() async {
 
 ///----------------------------------------------------------------------------
 /// These methods deal with showing and hiding the overlay
-Future<void> _showOverlay({@required Widget child, _OverlayType type}) async {
+Future<void> _showOverlay(Widget child, _OverlayType type) async {
   try {
     final overlay = _overlayState;
 
@@ -328,7 +324,7 @@ Future<void> _showOverlay({@required Widget child, _OverlayType type}) async {
       builder: (context) => child,
     );
 
-    overlay.insert(overlayEntry);
+    overlay?.insert(overlayEntry);
     type.setOverlayEntry(overlayEntry);
     type.setShowing();
   } catch (err) {
@@ -341,7 +337,7 @@ Future<void> _showOverlay({@required Widget child, _OverlayType type}) async {
 Future<void> _hideOverlay(_OverlayType type) async {
   try {
     if (type.isShowing()) {
-      type.getOverlayEntry().remove();
+      type.getOverlayEntry()?.remove();
       type.hide();
     } else {
       _printLog('No overlay is shown');
@@ -432,7 +428,7 @@ extension OverlayTypeExtension on _OverlayType {
     }
   }
 
-  OverlayEntry getOverlayEntry() {
+  OverlayEntry? getOverlayEntry() {
     switch (this) {
       case _OverlayType.Notification:
         return _notificationEntry;
